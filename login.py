@@ -33,7 +33,6 @@ class Login(Tk):
             self.destroy()
             MasterPanel()
 
-
     def __init__(self) -> None:
         super().__init__()
         self.title('Inicio de sesion')
@@ -46,7 +45,7 @@ class Login(Tk):
         self.usuario = u.Usuario()
 
         logo = PhotoImage(file='logo.PNG')
-        # frame_logo
+
         frame_logo = Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
         frame_logo.pack(side="left", expand=tk.YES, fill=tk.BOTH)
         label = tk.Label(frame_logo, image=logo, bg='#000')
@@ -90,16 +89,4 @@ class Login(Tk):
         inicio.pack(fill=tk.X, padx=20, pady=0)
         inicio.bind("<Return>", (lambda event: self.registro_sistema()))
 
-
-
         self.mainloop()
-
-
-def main():
-    raiz = Login()
-
-    raiz.mainloop()
-
-
-if __name__ == '__main__':
-    Login()

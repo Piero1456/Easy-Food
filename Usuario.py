@@ -9,7 +9,6 @@ class Usuario:
         else:
             return False
         
-    #Permite acceder al programa
     def login(self, usuario, password, bd):
         self.login_admitido = bd.buscar_usuario_db(usuario, password)
         if self.login_admitido == [False, 'error de nombre']:

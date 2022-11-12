@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import *
 
 class MasterPanel():
-
-
     def __init__(self):
         self.ventana = tk.Tk()
         self.ventana.title('EasyFood')
