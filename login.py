@@ -45,7 +45,7 @@ class Login(Tk):
         self.base_datos.iniciar_conexion_db()
         self.usuario = u.Usuario()
 
-        logo = PhotoImage(file='logo_emsamlud.PNG')
+        logo = PhotoImage(file='logo.PNG')
         # frame_logo
         frame_logo = Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
         frame_logo.pack(side="left", expand=tk.YES, fill=tk.BOTH)
