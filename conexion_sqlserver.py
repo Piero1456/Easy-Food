@@ -3,7 +3,7 @@ import pyodbc
 class DB():
     def iniciar_conexion_db(self):
         try:
-            self.conexion = pyodbc.connect('DRIVER={SQL Server};SERVER=(local);DATABASE=DeliveryRestaurante;UID=lucas;PWD=123')
+            self.conexion = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=(local);DATABASE=DeliveryRestaurante;UID=lucas;PWD=123')
             print('Conexion exitosa')
             # cursor = connection.cursor()
             # cursor.execute('SELECT @@version')
