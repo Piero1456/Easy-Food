@@ -1,63 +1,77 @@
 import tkinter as tk
-from tkinter import *
-from tkinter import ttk
 from tkinter.font import BOLD
-import Usuario as u
-from master import MasterPanel
+import entities.admin as a
+from tkinter import ttk as ttk
 from tkinter import messagebox
-import conexion_sqlserver as db
+import ventana_admin as m1
+import ventana_restaurante as m2
+import ventana_usuario as m3
+import base_datos.conexion_sqlite as bd
+import entities.restaurante_login as r
+import entities.usuario as u
+from ventana_restaurante import VentanaRestaurante
 
-class Login(Tk):
+class Login(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.geometry('800x500')
+        self.title('Easyfood - Inicio de sesión')
+        self.config(bg='#fff', padx=20, pady=20)
+        self.resizable(False, False)
+        self.disenno_interfaz_login()
+        self.protocol("WM_DELETE_WINDOW",self.fin_programa)
+        self.base_datos = bd.BD()
+        self.base_datos.iniciar_conexion_db()
+        self.admin = a.Admin()
+        self.restaurante = r.RestauranteLogin()
+        self.usuario = u.Usuario()
 
-    def cerrar_ventana(self):
+    def registro(self):
+        if not self.nombre_usuario.get() or not self.nombre_usuario.get():
+            messagebox.showwarning('Advertencia', 'Rellene los campos.')
+        elif self.usuario.registro(self.nombre_usuario.get(), self.password.get()):
+            messagebox.showinfo('Información', 'Se ha registrado correctamente.')
+        else:
+            messagebox.showwarning('Advertencia', 'El usuario ya ha sido registrado.')
+
+    def ingresar_sistema_admin(self):
+        self.admin.login(self.nombre_usuario.get(), self.password.get())
+        self.restaurante.login(self.nombre_usuario.get(), self.password.get())
+        
+        if self.admin.accede_sistema_admin:
+            self.withdraw()
+            self.ventana_principal = m1.VentanaAdmin()
+            self.ventana_principal.protocol("WM_DELETE_WINDOW",self.fin_programa)
+        elif self.restaurante.accede_sistema_restaurante:
+            self.withdraw()
+            self.ventana_principal = m2.VentanaRestaurante()
+            self.ventana_principal.protocol("WM_DELETE_WINDOW",self.fin_programa)
+        elif self.usuario.login(self.nombre_usuario.get(), self.password.get()):
+            self.withdraw()
+            self.ventana_principal = m3.VentanaUsuario()
+            self.ventana_principal.protocol("WM_DELETE_WINDOW",self.fin_programa)
+        else:
+            messagebox.showwarning('Advertencia', 'Usuario y/o contraseña incorrectos.')
+
+    def fin_programa(self):
         self.destroy()
         self.base_datos.finalizar_conexion_db()
 
-    def registro_sistema(self):
-        if not self.nombre_usuario.get() or not self.password.get():
-            messagebox.showwarning('Advertencia', 'Rellene los campos para completar su registro.')
-        elif self.usuario.registro(self.nombre_usuario.get(), self.password.get(), self.base_datos):
-            messagebox.showinfo('Información', 'Se ha registrado correctamente.')
-        else:
-            messagebox.showwarning('Advertencia', 'El nombre de usuario ya está en uso. Intente con otro.')
-
-    def ingresar_sistema(self):
-        if not self.nombre_usuario.get() or not self.password.get():
-            messagebox.showwarning('Advertencia', 'Rellene los campos para ingresar.')
-        elif not self.usuario.login(self.nombre_usuario.get(), self.password.get(), self.base_datos):
-            if self.usuario.login_admitido == [False, 'error de nombre']:
-                messagebox.showwarning('Advertencia', 'El nombre de usuario no existe, debe registrarse.')
-            else:
-                messagebox.showwarning('Advertencia', 'Su contraseña es incorrecta, inténtelo nuevamente.')
-        else:
-            self.destroy()
-            MasterPanel()
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.title('Inicio de sesion')
-        self.geometry('800x500')
-        self.config(bg='#000')
-        self.resizable(True, True)
-        self.protocol("WM_DELETE_WINDOW", self.cerrar_ventana)
-        self.base_datos = db.DB()
-        self.base_datos.iniciar_conexion_db()
-        self.usuario = u.Usuario()
-
-        logo = PhotoImage(file='logo.PNG')
-
-        frame_logo = Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
+    def disenno_interfaz_login(self):
+        self.logo = tk.PhotoImage(file='logo_easy_food.png')
+        
+        frame_logo = tk.Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
         frame_logo.pack(side="left", expand=tk.YES, fill=tk.BOTH)
-        label = tk.Label(frame_logo, image=logo, bg='#000')
+        label = tk.Label(frame_logo, image=self.logo, bg='#000')
         label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        frame_form = Frame(self, bd=0, relief=tk.SOLID, bg='#fcfcfc')
+        frame_form = tk.Frame(self, bd=0, relief=tk.SOLID, bg='#fcfcfc')
         frame_form.pack(side="right", expand=tk.YES, fill=tk.BOTH)
 
         frame_form_top = tk.Frame(frame_form, height=50, bd=0, relief=tk.SOLID, bg='black')
         frame_form_top.pack(side="top", fill=tk.X)
         title = tk.Label(frame_form_top, text="Inicio de sesion", font=('Times', 30), fg="#666a88", bg='#fcfcfc',
-                         pady=50)
+                        pady=40)
         title.pack(expand=tk.YES, fill=tk.BOTH)
 
         frame_form_fill = tk.Frame(frame_form, height=50, bd=0, relief=tk.SOLID, bg='#fcfcfc')
@@ -69,24 +83,29 @@ class Login(Tk):
         self.nombre_usuario.pack(fill=tk.X, padx=20, pady=10)
 
         etiqueta_password = tk.Label(frame_form_fill, text="Contraseña", font=('Times', 14), fg="#666a88", bg='#fcfcfc',
-                                     anchor="w")
+                                    anchor="w")
         etiqueta_password.pack(fill=tk.X, padx=20, pady=5)
         self.password = ttk.Entry(frame_form_fill, font=('Times', 14))
         self.password.pack(fill=tk.X, padx=20, pady=10)
         self.password.config(show="*")
 
         inicio = tk.Button(frame_form_fill, text="Iniciar sesion", font=('Times', 15, BOLD), bg='#343434', bd=0,
-                           fg="#fff", command=self.ingresar_sistema)
+                        fg="#fff", command=self.ingresar_sistema_admin)
         inicio.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
         inicio.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
         inicio.pack(fill=tk.X, padx=20, pady=20)
-        inicio.bind("<Return>", (lambda event: self.ingresar_sistema()))
+        inicio.bind("<Return>", (lambda event: self.ingresar_sistema_admin()))
 
-        inicio = tk.Button(frame_form_fill, text="Registrarse", font=('Times', 15, BOLD), bg='#343434', bd=0,
-                           fg="#fff", command=self.registro_sistema)
-        inicio.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
-        inicio.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
-        inicio.pack(fill=tk.X, padx=20, pady=0)
-        inicio.bind("<Return>", (lambda event: self.registro_sistema()))
+        registro = tk.Button(frame_form_fill, text="Registrarse", font=('Times', 15, BOLD), bg='#343434', bd=0,
+                        fg="#fff", command=self.registro)
+        registro.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
+        registro.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
+        registro.pack(fill=tk.X, padx=20, pady=20)
+        registro.bind("<Return>", (lambda event: self.registro()))
 
-        self.mainloop()
+def main():
+    raiz = Login()
+    raiz.mainloop()
+
+if __name__=='__main__':
+    main()
