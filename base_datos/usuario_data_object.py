@@ -42,10 +42,3 @@ class DAOUsuario(bd.BD):
         else:
             print(f'Usuario encontrado: {usuario_encontrado}')
             return True
-
-if __name__ == '__main__':
-    aea = bd.BD()
-    aea.iniciar_conexion_db()
-    xd = DAOUsuario()
-    xd.agregar_usuario_db('fsdhfdfd', 'bfcbcf')
-    aea.finalizar_conexion_db()

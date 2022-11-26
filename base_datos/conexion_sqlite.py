@@ -24,10 +24,3 @@ class BD():
         print('Cursor cerrado')
         BD.conexion.close()
         print('Conexion finalizada')
-
-if __name__ == '__main__':
-    bd = BD()
-    bd.iniciar_conexion_db()
-    bd.agregar_usuario_db('', '')
-    bd.buscar_usuario_db('', '')
-    bd.finalizar_conexion_db()
