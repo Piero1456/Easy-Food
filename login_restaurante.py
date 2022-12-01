@@ -8,6 +8,8 @@ import entities.restaurante as r
 import entities.carta_restaurante as cr
 
 class LoginRestaurante(tk.Toplevel):
+    contador_frame_interfaz_login = 0
+    contador_frame_restaurante = 0
     def __init__(self):
         super().__init__()
         self.geometry('800x500')
@@ -53,19 +55,33 @@ class LoginRestaurante(tk.Toplevel):
             messagebox.showwarning('Advertencia', 'Usuario y/o contraseña incorrectos.')
 
     def frame_restaurante(self):
-        self.frame_logo.destroy()
-        self.frame_form.destroy()
-        self.logo = tk.PhotoImage(file='logo_easy_food.png')
+        LoginRestaurante.contador_frame_restaurante += 1
+        if LoginRestaurante.contador_frame_interfaz_login >=  1:
+            #self.frame_logo.destroy()
+            #self.frame_form.destroy()
+            self.frame_interfaz_login.destroy()
+        if LoginRestaurante.contador_frame_restaurante > 1:
+            self.frame_restaurantes.destroy()
 
-        frame_logo = tk.Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
+        self.frame_restaurantes = tk.Frame(self, bg='#fcfcfc')
+        self.frame_restaurantes.pack()
+
+        self.logo = tk.PhotoImage(file='logo_easy_food.png')
+        frame_logo = tk.Frame(self.frame_restaurantes, bd=0, width=350, relief=tk.SOLID, padx=10, pady=10, bg='#000')
         frame_logo.pack(side="left", expand=tk.YES, fill=tk.BOTH)
         label = tk.Label(frame_logo, image=self.logo, bg='#000')
         label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        frame_form = tk.Frame(self, bd=0, relief=tk.SOLID, bg='#fcfcfc')
+        frame_form = tk.Frame(self.frame_restaurantes, bd=0, relief=tk.SOLID, bg='#fcfcfc')
         frame_form.pack(side="right", expand=tk.YES, fill=tk.BOTH)
+        boton_atras = tk.Button(frame_form, text="Atrás",
+        font=('Times', 15, 'bold'), bg='#343434', bd=0, fg="#fff", command=self.disenno_interfaz_login, padx=20)
+        boton_atras.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
+        boton_atras.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
+        boton_atras.bind("<Return>", (lambda event: self.disenno_interfaz_login()))
+        boton_atras.place(x=300, y=0)
         self.titulo_admin = tk.Label(frame_form, text="Bienvenido, restaurante", font=('Times', 30), fg="#666a88", bg='#fcfcfc')
-        self.titulo_admin.grid(row=0, column=0, padx=(20, 0), pady=(10, 0))
+        self.titulo_admin.grid(row=0, column=0, padx=(20, 0), pady=(35, 0))
 
         frame_form_top = tk.Frame(frame_form, bd=0, relief=tk.SOLID, bg='black')
         frame_form_top.grid(row=1, column=0)
@@ -113,18 +129,27 @@ class LoginRestaurante(tk.Toplevel):
                             fg="#fff", command=self.modificar_datos)
         self.boton_modificar_datos.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
         self.boton_modificar_datos.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
-        self.boton_modificar_datos.grid(row=6, column=0, columnspan=2, pady=(40, 0), ipadx=50)
+        self.boton_modificar_datos.grid(row=6, column=0, columnspan=2, pady=(30, 0), ipadx=50)
 
     def disenno_interfaz_login(self):
+        LoginRestaurante.contador_frame_interfaz_login += 1
+        if LoginRestaurante.contador_frame_restaurante >=  1:
+            self.frame_restaurantes.destroy()
+        if LoginRestaurante.contador_frame_restaurante > 1:
+            self.frame_interfaz_login.destroy()
+
         self.logo = tk.PhotoImage(file='logo_easy_food.png')
         
-        self.frame_logo = tk.Frame(self, bd=0, width=300, relief=tk.SOLID, padx=10, pady=10, bg='#000')
-        self.frame_logo.grid(row=0, column=0)
-        self.label = tk.Label(self.frame_logo, image=self.logo, bg='#000', width=380, height=420)
+        self.frame_interfaz_login = tk.Frame(self, bg='#000')
+        self.frame_interfaz_login.pack(fill=tk.BOTH, expand=True)
+
+        self.frame_logo = tk.Frame(self.frame_interfaz_login, relief=tk.SOLID, padx=10, pady=10, bg='#000')
+        self.frame_logo.pack(side="left")
+        self.label = tk.Label(self.frame_logo, image=self.logo, bg='#000', width=400, height=420, padx=10)
         self.label.pack(expand=True, fill='both')
 
-        self.frame_form = tk.Frame(self, bd=0, relief=tk.SOLID, bg='#fcfcfc')
-        self.frame_form.grid(row=0, column=1, padx=50)
+        self.frame_form = tk.Frame(self.frame_interfaz_login, bd=0, relief=tk.SOLID, bg='#fcfcfc', padx=30)
+        self.frame_form.pack(side="right", expand=tk.YES, fill=tk.BOTH)
 
         self.frame_form_top = tk.Frame(self.frame_form, height=50, bd=0, relief=tk.SOLID, bg='black')
         self.frame_form_top.grid(row=0, column=0)
