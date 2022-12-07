@@ -7,12 +7,15 @@ import entities.restaurante_login as r
 import entities.usuario as u
 import entities.restaurante as r
 import entities.carta_restaurante as cr
+import base_datos.favoritos_usuario as fav
 
 class LoginUsuario(tk.Toplevel):
     contador_interfaz_login = 0
     contador_frame_restaurantes = 0
     contador_frame_usuario = 0
     contador_frame_platos_restaurantes = 0
+    contador_frame_platos_favoritos = 0
+    contador_agregar_favoritos = 0
     def __init__(self):
         super().__init__()
         self.geometry('800x500')
@@ -22,6 +25,8 @@ class LoginUsuario(tk.Toplevel):
         self.disenno_interfaz_login()
         self.usuario = u.Usuario()
         self.carta_restaurante = cr.CartaRestaurante()
+        self.favoritos = fav.FavUsuario()
+        self.nombre_usuario_fav = []
 
     def registro_sistema_usuario(self):
         if not self.nombre_usuario.get() or not self.password.get():
@@ -33,12 +38,70 @@ class LoginUsuario(tk.Toplevel):
 
     def ingresar_sistema_usuario(self):
         if self.usuario.login(self.nombre_usuario.get(), self.password.get()):
+            self.nombre_usuario_fav.append(self.nombre_usuario.get())
             self.frame_usuario()
         else:
             messagebox.showwarning('Advertencia', 'Usuario y/o contraseña incorrectos.')
 
+    def tabla_platos_favoritos_usuario(self): 
+        self.tabla_platos_favoritos = ttk.Treeview(self.frame_favoritos, columns=('Plato'), height=7) 
+        
+        self.tabla_platos_favoritos.column('#0', width=50, anchor=tk.W)
+        self.tabla_platos_favoritos.column('Plato', width=600, anchor=tk.CENTER)
+
+        self.tabla_platos_favoritos.grid(row=1, column=0, columnspan=2, padx=(40, 0), pady=(20, 0))
+
+        self.tabla_platos_favoritos.heading('#0', text='ID', anchor=tk.CENTER)
+        self.tabla_platos_favoritos.heading('#1', text='Plato')
+
+        scroll_vertical_tabla_platos_favoritos = tk.Scrollbar(self.frame_favoritos, command=self.tabla_platos_favoritos.yview)
+        scroll_vertical_tabla_platos_favoritos.grid(row=1, column=2, sticky=tk.NS, padx=(0, 10), pady=(20, 0))
+        self.tabla_platos_favoritos.configure(yscrollcommand=scroll_vertical_tabla_platos_favoritos.set)
+        try:
+            self.platos_favoritos = self.favoritos.listar_platos_tabla_fav_usuario_bd(self.nombre_usuario_fav[-1])
+        except:
+            messagebox.showwarning('Advertencia', 'Debe agregar platos a sus favoritos.')
+        for plato in self.platos_favoritos:
+            self.tabla_platos_favoritos.insert('', tk.END, text=plato[0], values=(plato[1],))
+            print(plato)
+
+    def frame_platos_favoritos(self):
+        try:
+            self.platos_favoritos = self.favoritos.listar_platos_tabla_fav_usuario_bd(self.nombre_usuario_fav[-1])
+            
+            LoginUsuario.contador_frame_platos_favoritos += 1
+            if LoginUsuario.contador_frame_platos_favoritos > 1:
+                self.frame_favoritos.destroy()
+            if LoginUsuario.contador_frame_platos_restaurantes >= 1:
+                self.frame_platos_restaurantes.destroy()
+            
+            self.frame_favoritos = tk.Frame(self, bg='#fcfcfc')
+            self.frame_favoritos.pack(expand=True, fill=tk.BOTH)
+
+            boton_atras = tk.Button(self.frame_favoritos, text="Atrás",
+            font=('Times', 15, 'bold'), bg='#343434', bd=0, fg="#fff", command=self.frame_platos_restaurantes_afiliados, padx=20)
+            boton_atras.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
+            boton_atras.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
+            boton_atras.bind("<Return>", (lambda event: self.frame_platos_restaurantes_afiliados()))
+            boton_atras.place(x=600, y=0)
+
+            self.label_platos_favoritos = tk.Label(self.frame_favoritos, text=f'Lista de platos favoritos',
+            font=('Times', 18), fg="#666a88", bg='#fcfcfc', anchor="w")
+            self.label_platos_favoritos.grid(row=0, column=0, columnspan=3)
+            self.tabla_platos_favoritos_usuario()
+            self.logo_platos_favoritos = tk.PhotoImage(file='platos_restaurantes.png')
+            self.logo_platos_favoritos = self.logo_platos_favoritos.subsample(3)
+            self.logo_platos_favoritos = tk.Label(self.frame_favoritos, image=self.logo_platos_restaurantes_afiliados)
+            self.logo_platos_favoritos.grid(row=2, column=0, columnspan=3, pady=(20, 0))
+        except:
+            messagebox.showwarning('Advertencia', 'Debe agregar platos a sus favoritos.')
+            return
+        
+        
+
     def tabla_platos_restaurante_afiliados(self):
-        self.id_plato = None
+        self.id_plato_fav = None
+        self.plato_fav = None
         self.tabla_platos_restaurante = ttk.Treeview(self.frame_platos_restaurantes, columns=('Plato'), height=7) 
         
         self.tabla_platos_restaurante.column('#0', width=50, anchor=tk.W)
@@ -58,10 +121,34 @@ class LoginUsuario(tk.Toplevel):
             self.tabla_platos_restaurante.insert('', tk.END, text=plato[0], values=(plato[1],))
             print(plato)
 
+        def plato_seleccionado(event):
+            registro_seleccionado = self.tabla_platos_restaurante.focus()
+            if not registro_seleccionado:
+                return None
+            data = self.tabla_platos_restaurante.item(registro_seleccionado)
+            (self.id_plato_fav) = data["text"]
+            (self.plato_fav) = data["values"]
+        self.tabla_platos_restaurante.bind("<<TreeviewSelect>>", plato_seleccionado)
+
+    def agregar_favoritos(self):
+        LoginUsuario.contador_agregar_favoritos += 1
+        """ if LoginUsuario.contador_agregar_favoritos > 1:
+            messagebox.showwarning('Advertencia', 'El plato ya ha sido agregado.') """
+        try:
+            self.favoritos.crear_tabla_fav_usuario(self.nombre_usuario_fav[-1])
+        except:
+            pass
+        if self.favoritos.agregar_plato_db(self.nombre_usuario_fav[-1], self.plato_fav[-1]):
+            messagebox.showinfo('Información', 'El plato ha sido agregado correctamente.')
+        else:
+            messagebox.showwarning('Advertencia', 'El plato ya ha sido agregado.')
+
     def frame_platos_restaurantes_afiliados(self):
         LoginUsuario.contador_frame_platos_restaurantes += 1
         if LoginUsuario.contador_frame_usuario >= 1:
             self.frame_restaurantes.destroy()
+        if LoginUsuario.contador_frame_platos_favoritos >= 1:
+            self.frame_favoritos.destroy()
         
         self.frame_platos_restaurantes = tk.Frame(self, bg='#fcfcfc')
         self.frame_platos_restaurantes.pack(expand=True, fill=tk.BOTH)
@@ -82,6 +169,19 @@ class LoginUsuario(tk.Toplevel):
         self.label_logo_platos_restaurantes_afiliados = tk.Label(self.frame_platos_restaurantes, image=self.logo_platos_restaurantes_afiliados)
         self.label_logo_platos_restaurantes_afiliados.grid(row=2, column=0, columnspan=3, pady=(20, 0))
 
+        boton_agregar_favoritos = tk.Button(self.frame_platos_restaurantes, text="Agregar a\nfavoritos",
+        font=('Times', 15, 'bold'), bg='#343434', bd=0, fg="#fff", command=self.agregar_favoritos, padx=20)
+        boton_agregar_favoritos.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
+        boton_agregar_favoritos.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
+        boton_agregar_favoritos.bind("<Return>", (lambda event: self.agregar_favoritos()))
+        boton_agregar_favoritos.place(x=600, y=250)
+
+        boton_ver_favoritos = tk.Button(self.frame_platos_restaurantes, text="Ver platos\nfavoritos",
+        font=('Times', 15, 'bold'), bg='#343434', bd=0, fg="#fff", command=self.frame_platos_favoritos, padx=20)
+        boton_ver_favoritos.bind('<Enter>', lambda e: e.widget.config(bg='#A4A2A2'))
+        boton_ver_favoritos.bind('<Leave>', lambda e: e.widget.config(bg='#343434'))
+        boton_ver_favoritos.bind("<Return>", (lambda event: self.frame_platos_favoritos()))
+        boton_ver_favoritos.place(x=600, y=400)
 
     def tabla_restaurantes_afiliados(self):
         self.nombre_restaurante = None
