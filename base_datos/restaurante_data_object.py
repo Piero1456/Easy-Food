@@ -1,13 +1,15 @@
 import base_datos.conexion_sqlite as bd
 
 class DAORestaurante(bd.BD):
+
+    restaurante_agregado = False
     def lista_restaurantes_db(self):
         bd.BD.cursor.execute(f"SELECT * FROM Restaurante")
         return self.cursor.fetchall()
 
     def agregar_restaurante_db(self, nombre):
         bd.BD.cursor.execute(f"SELECT * FROM Restaurante WHERE nombre = ('{nombre}')")
-        
+        DAORestaurante.restaurante_agregado = False
         lista_restaurantes = self.cursor.fetchall()
         self.contador_restaurante_repetido = 0
         for i in lista_restaurantes:
@@ -21,6 +23,7 @@ class DAORestaurante(bd.BD):
             bd.BD.cursor.execute(f"insert into Restaurante (nombre) values('{nombre}')")
             bd.BD.conexion.commit()
             print('Restaurante agregado.')
+            DAORestaurante.restaurante_agregado = True
             return True
 
     def buscar_restaurante_db(self, nombre):
